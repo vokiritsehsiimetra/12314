@@ -1,9 +1,9 @@
 #ifndef BMP280_H
 #define BMP280_H
 
-#include <wiringPiI2C.h>
 #include <cstdint>
 #include <cmath>
+#include <pigpio.h>
 
 class BMP280 {
 public:
@@ -14,7 +14,6 @@ public:
     float readAltitude(float seaLevelPressure = 101325.0);
 
 private:
-    int fd;
     int address;
 
     // Calibration data
@@ -34,6 +33,9 @@ private:
     void readCalibrationData();
     int32_t compensateTemperature(int32_t adc_T);
     uint32_t compensatePressure(int32_t adc_P);
+    int readRegister(uint8_t reg);
+    int readRegister16(uint8_t reg);
+    int readRegister24(uint8_t reg);
 };
 
 #endif // BMP280_H

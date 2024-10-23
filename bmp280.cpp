@@ -1,33 +1,51 @@
 #include "BMP280.h"
 
 BMP280::BMP280(int address) : address(address) {
-    fd = wiringPiI2CSetup(address);
 }
 
 bool BMP280::begin() {
-    if (fd == -1) return false;
+    if (gpioInitialise() < 0) {
+        return false; // Initialization failed
+    }
 
     // Read calibration data
     readCalibrationData();
     
     // Set the control register for the sensor
-    wiringPiI2CWriteReg8(fd, 0xF4, 0x27); // Normal mode, 16x oversampling for both temp and pressure
+    gpioI2CWriteByteData(address, 0xF4, 0x27); // Normal mode, 16x oversampling for both temp and pressure
     return true;
 }
 
 void BMP280::readCalibrationData() {
-    dig_T1 = wiringPiI2CReadReg16(fd, 0x88);
-    dig_T2 = wiringPiI2CReadReg16(fd, 0x8A);
-    dig_T3 = wiringPiI2CReadReg16(fd, 0x8C);
-    dig_P1 = wiringPiI2CReadReg16(fd, 0x8E);
-    dig_P2 = wiringPiI2CReadReg16(fd, 0x90);
-    dig_P3 = wiringPiI2CReadReg16(fd, 0x92);
-    dig_P4 = wiringPiI2CReadReg16(fd, 0x94);
-    dig_P5 = wiringPiI2CReadReg16(fd, 0x96);
-    dig_P6 = wiringPiI2CReadReg16(fd, 0x98);
-    dig_P7 = wiringPiI2CReadReg16(fd, 0x9A);
-    dig_P8 = wiringPiI2CReadReg16(fd, 0x9C);
-    dig_P9 = wiringPiI2CReadReg16(fd, 0x9E);
+    dig_T1 = readRegister16(0x88);
+    dig_T2 = readRegister16(0x8A);
+    dig_T3 = readRegister16(0x8C);
+    dig_P1 = readRegister16(0x8E);
+    dig_P2 = readRegister16(0x90);
+    dig_P3 = readRegister16(0x92);
+    dig_P4 = readRegister16(0x94);
+    dig_P5 = readRegister16(0x96);
+    dig_P6 = readRegister16(0x98);
+    dig_P7 = readRegister16(0x9A);
+    dig_P8 = readRegister16(0x9C);
+    dig_P9 = readRegister16(0x9E);
+}
+
+int BMP280::readRegister(uint8_t reg) {
+    return gpioI2CReadByteData(address, reg);
+}
+
+int BMP280::readRegister16(uint8_t reg) {
+    uint8_t msb = readRegister(reg);
+    uint8_t lsb = readRegister(reg + 1);
+    return (msb << 8) | lsb;
+}
+
+int BMP280::readRegister24(uint8_t reg) {
+    uint8_t msb = readRegister(reg);
+    uint8_t lsb = readRegister(reg + 1);
+    uint8_t xlsb = readRegister(reg + 2);
+    return (msb << 16) | (lsb << 8) | xlsb;
 }
 
 int32_t BMP280::compensateTemperature(int32_t adc_T) {
@@ -56,13 +74,13 @@ uint32_t BMP280::compensatePressure(int32_t adc_P) {
 }
 
 float BMP280::readTemperature() {
-    int32_t adc_T = wiringPiI2CReadReg24(fd, 0xFA) >> 4;
+    int32_t adc_T = readRegister24(0xFA) >> 4;
     int32_t t = compensateTemperature(adc_T);
     return t / 5120.0;
 }
 
 float BMP280::readPressure() {
-    int32_t adc_P = wiringPiI2CReadReg24(fd, 0xF7) >> 4;
+    int32_t adc_P = readRegister24(0xF7) >> 4;
     return compensatePressure(adc_P) / 256.0; // Convert to hPa
 }
 

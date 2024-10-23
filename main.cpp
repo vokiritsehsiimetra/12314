@@ -5,7 +5,7 @@
 int main() {
     BMP280 bmp;
 
-    // Initialize the BMP280 sensor
+    // Initialize Pigpio library
     if (!bmp.begin()) {
         std::cerr << "Failed to initialize BMP280 sensor!" << std::endl;
         return 1;
