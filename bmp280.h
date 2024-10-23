@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cmath>
 #include <pigpio.h>
+#include <iostream>
 
 class BMP280 {
 public:
@@ -15,6 +16,7 @@ public:
 
 private:
     int address;
+    int i2cHandle;
 
     // Calibration data
     uint16_t dig_T1;

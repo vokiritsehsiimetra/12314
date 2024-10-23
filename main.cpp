@@ -1,11 +1,11 @@
 #include <iostream>
 #include <unistd.h>  // For sleep function
-#include "BMP280.h"
+#include "bmp280.h"
 
 int main() {
     BMP280 bmp;
 
-    // Initialize Pigpio library
+    // Initialize the BMP280 sensor
     if (!bmp.begin()) {
         std::cerr << "Failed to initialize BMP280 sensor!" << std::endl;
         return 1;
@@ -23,7 +23,7 @@ int main() {
         std::cout << "Temperature: " << temperature << " °C" << std::endl;
         std::cout << "Pressure: " << pressure << " hPa" << std::endl;
         std::cout << "Altitude: " << altitude << " m" << std::endl;
-        
+
         // Wait for 1 second before the next reading
         sleep(1);
     }
